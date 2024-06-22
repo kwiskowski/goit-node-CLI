@@ -1,21 +1,48 @@
-console.log("hello world");
-console.log(process.platform);
+import { Command } from "commander";
 
-// global.foo = 3;
-// console.log(foo);
+import {
+  listContacts,
+  getContactById,
+  removeContact,
+  addContact,
+} from "./contacts.js";
 
-// console.log(process.argv);
+const program = new Command();
+program
+  .option("-a, --action <type>", "choose action")
+  .option("-i, --id <type>", "user id")
+  .option("-n, --name <type>", "user name")
+  .option("-e, --email <type>", "user email")
+  .option("-p, --phone <type>", "user phone");
 
-// setImmediate(function () {
-//   console.log("setImmediate callback");
-// });
+program.parse(process.argv);
+const argv = program.opts();
 
-// process.nextTick(function () {
-//   console.log("NextTick callback");
-// });
+async function invokeAction({ action, id, name, email, phone }) {
+  switch (action) {
+    case "list":
+      const contacts = await listContacts();
+      console.table(JSON.parse(contacts));
+      break;
 
-// NextTick callback
-// setImmediate callback
+    case "get":
+      const contact = await getContactById(id);
+      console.log(contact);
+      break;
 
-// const fs = require("fs");
-// const path = require("path");
+    case "add":
+      await addContact(name, email, phone);
+      console.log("Added new contact.");
+      break;
+
+    case "remove":
+      await removeContact(id);
+      console.log("Removed contact.");
+      break;
+
+    default:
+      console.warn("\x1B[31m Unknown action type!");
+  }
+}
+
+invokeAction(argv);
